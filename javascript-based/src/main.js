@@ -41,10 +41,8 @@ const getScrapedWikipediaAnalysis = async function (link) {
     console.log(pageLanguage);
     await getAnalysisForReferences();
     const { uniGramFrequencyTable, sortedNGramFrequencyArray } = await getAnalysisOnFullPageContent(link)
+    guessLangauge(sortedNGramFrequencyArray);
     createPlot(uniGramFrequencyTable);
-    // guessLangauge(sortedNGramFrequencyArray);
-    const stop = 1
-    // return uniGramFrequencyTable;
 }
 
 const getAnalysisForReferences = async function () {
@@ -58,36 +56,42 @@ const getAnalysisForReferences = async function () {
 }
 
 const guessLangauge = function (sortedNGramFrequencyArray) {
-    getAllRankDifferences(sortedNGramFrequencyArray);
-    const lang = getLowestRank();
+    const lang = getAllRankDifferences(sortedNGramFrequencyArray);
     console.log(`From text, Language is ${LANGUAGES[lang]}`)
 }
 
 const getAllRankDifferences = function (sortedNGramFrequencyArray) {
     const N = 2;
-    Object.entries(COMPARISON_URLS).forEach(([, linksArray]) => {
+    const langScores = {}
+    Object.entries(COMPARISON_URLS).forEach(([lang, linksArray]) => {
+        const diffArr = [];
         linksArray.forEach(linkObj => {
             const { refSortedNGramFrequencyArray } = linkObj;
             const sortedNGramTable = Object.keys(sortedNGramFrequencyArray[N]);
             const sortedRefNGramTable = Object.keys(refSortedNGramFrequencyArray[N]);
-            calculateRankDifferences(linkObj, sortedNGramTable, sortedRefNGramTable);
+            const diff = calculateRankDifferences(sortedNGramTable, sortedRefNGramTable);
+            diffArr.push(diff);
         })
+        langScores[lang] = (diffArr.reduce((a, b) => a + b, 0)) / 2;
     })
+    return getLowestRank(langScores)
 }
 
-const calculateRankDifferences = function (linkObj, sortedNGramTable, sortedRefNGramTable) {
+const calculateRankDifferences = function (sortedNGramTable, sortedRefNGramTable) {
     let diff = 0;
     sortedNGramTable.forEach((syllable, i) => {
         let refRank = sortedRefNGramTable.indexOf(syllable);
         if (refRank < 0) refRank = sortedRefNGramTable.length;
         diff = diff + Math.abs((refRank - i));
     })
-    linkObj.diff = diff;
+    return diff;
 }
 
-const getLowestRank = function () {
-
-
+const getLowestRank = function (langScores) {
+    const sortedLangTable = Object.fromEntries(
+        Object.entries(langScores).sort(([, a], [, b]) => a - b)
+    );
+    return Object.keys(sortedLangTable)[0];
 }
 
 const getAnalysisOnFullPageContent = async function (link) {
