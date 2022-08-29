@@ -1,6 +1,6 @@
 //Baed on https://www.let.rug.nl/~vannoord/TextCat/textcat.pdf
 //and on https://cloudmark.github.io/Language-Detection/#:~:text=The%20system%20is%20based%20on,profiles%20to%20make%20its%20detection.
-const NGramAnalysis = function(text){
+const NGramAnalysis = function (text) {
 
     const N = 3
 
@@ -58,15 +58,15 @@ const NGramAnalysis = function(text){
         return pageContent.split('').filter(char => /[a-z]/g.test(char)).sort();
     }
 
-    const getSortedNGramFrequencyArray = function(nGramFrequencyArray){
-        return nGramFrequencyArray.map(nGramFrequencyTable=>sortCleanFrequencyTable(nGramFrequencyTable))
+    const getSortedNGramFrequencyArray = function (nGramFrequencyArray) {
+        return nGramFrequencyArray.map(nGramFrequencyTable => sortCleanFrequencyTable(nGramFrequencyTable))
     }
 
-    const uniGramFrequencyTable = getUniGramFrequencyTable(text);
+    const uniGramFrequencyTable = sortCleanFrequencyTable(getUniGramFrequencyTable(text));
     const nGramFrequencyArray = getAllNGramsFrequencyArray(text);
     const sortedNGramFrequencyArray = getSortedNGramFrequencyArray(nGramFrequencyArray);
 
-    return{
+    return {
         uniGramFrequencyTable,
         nGramFrequencyArray,
         sortedNGramFrequencyArray
